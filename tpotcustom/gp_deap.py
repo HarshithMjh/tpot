@@ -460,6 +460,7 @@ def _wrapped_cross_val_score(sklearn_pipeline, features, target,
                                          verbose=0,
                                          parameters=None,
                                          error_score='raise',
+                                         return_estimator=True,
                                          fit_params=sample_weight_dict)
                                     for train, test in cv_iter]
                 if isinstance(scores[0], list): #scikit-learn <= 0.23.2
@@ -467,10 +468,13 @@ def _wrapped_cross_val_score(sklearn_pipeline, features, target,
                 elif isinstance(scores[0], dict): # scikit-learn >= 0.24
                     from sklearn.model_selection._validation import _aggregate_score_dicts
                     CV_score = _aggregate_score_dicts(scores)["test_scores"]
+                    CV_fitted_pipeline = _aggregate_score_dicts(scores)["estimator"]
                 else:
                     raise ValueError("Incorrect output format from _fit_and_score!")
-                CV_score_mean = np.nanmean(CV_score)
-            return CV_score_mean
+                fit_and_score_details = dict()
+                fit_and_score_details["CV_score_mean"] = np.nanmean(CV_score)
+                fit_and_score_details["CV_fitted_best_pipeline"] = CV_fitted_pipeline[0]
+            return fit_and_score_details
         except TimeoutException:
             return "Timeout"
         except Exception as e:

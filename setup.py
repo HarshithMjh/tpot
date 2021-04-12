@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 
 def calculate_version():
-    initpy = open('tpot/_version.py').read().split('\n')
+    initpy = open('tpotcustom/_version.py').read().split('\n')
     version = list(filter(lambda x: '__version__' in x, initpy))[0].split('\'')[1]
     return version
 
@@ -12,7 +12,7 @@ def calculate_version():
 package_version = calculate_version()
 
 setup(
-    name='TPOT',
+    name='TPOTCUSTOM',
     version=package_version,
     author='Randal S. Olson',
     author_email='rso@randalolson.com',

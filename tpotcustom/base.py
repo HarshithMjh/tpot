@@ -35,6 +35,7 @@ from multiprocessing import cpu_count
 import os
 import re
 import errno
+import pickle
 
 from tempfile import mkdtemp
 from shutil import rmtree
@@ -309,6 +310,8 @@ class TPOTBase(BaseEstimator):
         self.disable_update_check = disable_update_check
         self.random_state = random_state
         self.log_file = log_file
+        self.best_score = -float("inf")
+        self.best_fitted_pipeline = None
 
     def _setup_template(self, template):
         self.template = template
@@ -1181,6 +1184,8 @@ class TPOTBase(BaseEstimator):
             if (
                 total_since_last_pipeline_save
                 > self._output_best_pipeline_period_seconds
+            ) or (
+                gen == self.generations
             ):
                 self._last_pipeline_write = datetime.now()
                 self._save_periodic_pipeline(gen)
@@ -1232,6 +1237,9 @@ class TPOTBase(BaseEstimator):
                     )
                     with open(filename, "w") as output_file:
                         output_file.write(to_write)
+                    filename1 = os.path.join("best_fitted_pipeline.p")
+                    with open(filename1, "wb") as output_file1:
+                        pickle.dump(self.best_fitted_pipeline, output_file1)
                     self._exported_pipeline_text.append(sklearn_pipeline_str)
 
         except Exception as e:
@@ -1531,7 +1539,10 @@ class TPOTBase(BaseEstimator):
                     val = partial_wrapped_cross_val_score(
                         sklearn_pipeline=sklearn_pipeline
                     )
-                    result_score_list = self._update_val(val, result_score_list)
+                    result_score_list = self._update_val(val["CV_score_mean"], result_score_list)
+                    if val["CV_score_mean"] > self.best_score:
+                        self.best_score = val["CV_score_mean"]
+                        self.best_fitted_pipeline = val["CV_fitted_best_pipeline"]
             else:
                 # chunk size for pbar update
                 if self.use_dask:
@@ -1574,7 +1585,10 @@ class TPOTBase(BaseEstimator):
                         )
                     # update pbar
                     for val in tmp_result_scores:
-                        result_score_list = self._update_val(val, result_score_list)
+                        result_score_list = self._update_val(val["CV_score_mean"], result_score_list)
+                        if val["CV_score_mean"] > self.best_score:
+                            self.best_score = val["CV_score_mean"]
+                            self.best_fitted_pipeline = val["CV_fitted_best_pipeline"]
 
         except (KeyboardInterrupt, SystemExit, StopIteration) as e:
             if self.verbosity > 0:

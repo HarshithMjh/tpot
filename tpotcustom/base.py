@@ -1237,9 +1237,10 @@ class TPOTBase(BaseEstimator):
                     )
                     with open(filename, "w") as output_file:
                         output_file.write(to_write)
-                    filename1 = os.path.join("best_fitted_pipeline.p")
-                    with open(filename1, "wb") as output_file1:
-                        pickle.dump(self.best_fitted_pipeline, output_file1)
+                    if self.best_fitted_pipeline is not None:
+                        filename1 = os.path.join("best_fitted_pipeline.p")
+                        with open(filename1, "wb") as output_file1:
+                            pickle.dump(self.best_fitted_pipeline, output_file1)
                     self._exported_pipeline_text.append(sklearn_pipeline_str)
 
         except Exception as e:

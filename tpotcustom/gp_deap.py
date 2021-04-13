@@ -476,6 +476,12 @@ def _wrapped_cross_val_score(sklearn_pipeline, features, target,
                 fit_and_score_details["CV_fitted_best_pipeline"] = CV_fitted_pipeline[0]
             return fit_and_score_details
         except TimeoutException:
-            return "Timeout"
+            fit_and_score_details = dict()
+            fit_and_score_details["CV_score_mean"] = "Timeout"
+            fit_and_score_details["CV_fitted_best_pipeline"] = None
+            return fit_and_score_details
         except Exception as e:
-            return -float('inf')
+            fit_and_score_details = dict()
+            fit_and_score_details["CV_score_mean"] = -float('inf')
+            fit_and_score_details["CV_fitted_best_pipeline"] = None
+            return fit_and_score_details

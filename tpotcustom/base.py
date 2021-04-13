@@ -1541,9 +1541,10 @@ class TPOTBase(BaseEstimator):
                         sklearn_pipeline=sklearn_pipeline
                     )
                     result_score_list = self._update_val(val["CV_score_mean"], result_score_list)
-                    if val["CV_score_mean"] > self.best_score:
-                        self.best_score = val["CV_score_mean"]
-                        self.best_fitted_pipeline = val["CV_fitted_best_pipeline"]
+                    if val["CV_fitted_best_pipeline"] is not None:
+                        if val["CV_score_mean"] > self.best_score:
+                            self.best_score = val["CV_score_mean"]
+                            self.best_fitted_pipeline = val["CV_fitted_best_pipeline"]
             else:
                 # chunk size for pbar update
                 if self.use_dask:
@@ -1587,9 +1588,10 @@ class TPOTBase(BaseEstimator):
                     # update pbar
                     for val in tmp_result_scores:
                         result_score_list = self._update_val(val["CV_score_mean"], result_score_list)
-                        if val["CV_score_mean"] > self.best_score:
-                            self.best_score = val["CV_score_mean"]
-                            self.best_fitted_pipeline = val["CV_fitted_best_pipeline"]
+                        if val["CV_fitted_best_pipeline"] is not None:
+                            if val["CV_score_mean"] > self.best_score:
+                                self.best_score = val["CV_score_mean"]
+                                self.best_fitted_pipeline = val["CV_fitted_best_pipeline"]
 
         except (KeyboardInterrupt, SystemExit, StopIteration) as e:
             if self.verbosity > 0:
